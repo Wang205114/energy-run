@@ -59,16 +59,17 @@
             width: 100%;
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 60px; /* 调大间距，例如由 20px 改为 60px */
             z-index: 5;
         }
         #controls button {
-            padding: 10px 20px;
-            font-size: 1.2em;
+            padding: 12px 30px; /* 增加按钮大小 */
+            font-size: 1.4em;    /* 稍微变大字体 */
             background-color: #66bb6a;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
+            min-width: 80px;     /* 设置按钮最小宽度，确保不缩得太小 */
         }
     </style>
 </head>
