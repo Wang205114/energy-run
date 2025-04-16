@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>能源快跑</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(to bottom, #e0f2f1, #fff);
@@ -20,6 +17,7 @@
             background: #c8e6c9;
             border: 4px solid #388e3c;
             border-radius: 10px;
+            max-width: 100%;
         }
         #hud {
             position: absolute;
@@ -30,14 +28,12 @@
             gap: 40px;
             font-size: 1.2em;
             color: #2e7d32;
+            z-index: 5;
         }
-        #pauseStatus {
-            display: none;
-        }
-        #startScreen {
+        #pauseStatus { display: none; }
+        #startScreen, #endScreen {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
             font-size: 2em;
@@ -46,8 +42,9 @@
             background-color: rgba(255, 255, 255, 0.8);
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
         }
-        #startScreen button {
+        #startScreen button, #endScreen button {
             padding: 10px 20px;
             font-size: 1.2em;
             background-color: #388e3c;
@@ -56,8 +53,22 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        #startScreen button:hover {
-            background-color: #2e7d32;
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            z-index: 5;
+        }
+        #controls button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background-color: #66bb6a;
+            color: white;
+            border: none;
+            border-radius: 10px;
         }
     </style>
 </head>
@@ -76,32 +87,32 @@
     <button id="startButton">开始游戏</button>
 </div>
 
+<div id="controls">
+    <button id="leftBtn">左</button>
+    <button id="jumpBtn">跳跃</button>
+    <button id="rightBtn">右</button>
+</div>
+
 <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const scoreboard = document.getElementById('scoreboard');
     const timerDisplay = document.getElementById('timer');
     const pauseStatus = document.getElementById('pauseStatus');
-    const bgm = document.getElementById('bgm');
-    const jumpSound = document.getElementById('jumpSound');
     const startScreen = document.getElementById('startScreen');
     const startButton = document.getElementById('startButton');
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+    const jumpBtn = document.getElementById('jumpBtn');
+    const jumpSound = document.getElementById('jumpSound');
 
     const characterImg = new Image();
     characterImg.src = 'https://cdn-icons-png.flaticon.com/512/3024/3024605.png';
 
-    let player = { x: 50, y: 400, width: 40, height: 40, vy: 0, jump: false, speed: 1.5, movingLeft: false, movingRight: false };
-    let ground = 450;
-    let gravity = 1;
-    let score = 0;
-    let timeLeft = 60;
-    let speed = 1;  // 方块速度
-    let paused = false;
-
-    let items = [];
-    let leaderboard = [];
-
-    let questions = [
+    let player = {}, items = [], gameFrame, spawnTimer, countdown;
+    let ground = 450, gravity = 1, speed = 4; // Speed 调整为 4
+    let score = 0, timeLeft = 60, paused = false, gameRunning = false;
+    const questions = [ // 节能题库
         { q: '以下哪项是节能行为？', options: ['整晚开灯', '白天利用自然光', '冰箱门常开'], correct: 1 },
         { q: '以下哪项更节能？', options: ['空教室开空调', '拔掉电器插头', '电脑不休眠'], correct: 1 },
         { q: '频繁开关冰箱会怎样？', options: ['省电', '加快制冷', '浪费能源'], correct: 2 },
@@ -120,16 +131,28 @@
         { q: '在宿舍节能应该避免什么行为？', options: ['电脑挂着下载通宵', '统一作息关灯', '使用节能插座'], correct: 0 }
     ];
 
+    function resizeCanvas() {
+        canvas.width = Math.min(window.innerWidth - 20, 800);
+        canvas.height = 500;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function resetGameState() {
+        player = { x: 50, y: 400, width: 40, height: 40, vy: 0, jump: false, speed: 3, movingLeft: false, movingRight: false };
+        score = 0; timeLeft = 60; paused = false; items = []; gameRunning = true;
+        scoreboard.innerText = `得分：${score}`;
+        timerDisplay.innerText = `剩余时间：${timeLeft}秒`;
+        pauseStatus.style.display = 'none';
+    }
+
     function spawnItem() {
-        let q = questions[Math.floor(Math.random() * questions.length)];
-        if (Math.random() < 0.5) {
+        if (Math.random() < 0.7) {  // 增加生成概率
+            let q = questions[Math.floor(Math.random() * questions.length)];
             items.push({
-                x: 800,
-                y: 400,
-                width: 40,
-                height: 40,
-                question: q,
-                answered: false
+                x: canvas.width + 100, // 增加间距
+                y: 400, width: 40, height: 40,
+                question: q, answered: false, passed: false
             });
         }
     }
@@ -146,19 +169,24 @@
     }
 
     function updateItems() {
-        items.forEach(item => item.x -= speed);
+        items.forEach(item => {
+            item.x -= speed;  // 加速
+            if (!item.answered && !item.passed && item.x + item.width < player.x) {
+                score += 10;
+                item.passed = true;
+                scoreboard.innerText = `得分：${score}`;
+            }
+        });
         items = items.filter(item => item.x + item.width > 0);
     }
 
     function checkCollision() {
         items.forEach(item => {
-            if (
-                !item.answered &&
+            if (!item.answered &&
                 player.x < item.x + item.width &&
                 player.x + player.width > item.x &&
                 player.y < item.y + item.height &&
-                player.y + player.height > item.y
-            ) {
+                player.y + player.height > item.y) {
                 const q = item.question;
                 let answer = prompt(`${q.q}\n0: ${q.options[0]}\n1: ${q.options[1]}\n2: ${q.options[2]}`);
                 if (parseInt(answer) === q.correct) {
@@ -170,15 +198,34 @@
                 }
                 item.answered = true;
                 scoreboard.innerText = `得分：${score}`;
-
                 player.movingLeft = false;
                 player.movingRight = false;
             }
         });
     }
 
+    function showEndScreen() {
+        gameRunning = false;
+        cancelAnimationFrame(gameFrame);
+        clearInterval(spawnTimer);
+        clearInterval(countdown);
+
+        const endScreen = document.createElement('div');
+        endScreen.id = 'endScreen';
+        endScreen.innerHTML = `
+        <h2>游戏结束</h2>
+        <p>你的得分是：<strong>${score}</strong></p>
+        <button id="restartBtn">再来一局</button>
+    `;
+        document.body.appendChild(endScreen);
+        document.getElementById('restartBtn').onclick = () => {
+            document.body.removeChild(endScreen);
+            startGame();
+        };
+    }
+
     function gameLoop() {
-        if (paused) return;
+        if (!gameRunning || paused) return;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#a5d6a7';
@@ -200,54 +247,61 @@
         drawItems();
         checkCollision();
 
-        requestAnimationFrame(gameLoop);
+        gameFrame = requestAnimationFrame(gameLoop);
     }
 
-    startButton.addEventListener('click', () => {
+    function startGame() {
+        resetGameState();
         startScreen.style.display = 'none';
         gameLoop();
-    });
+
+        spawnTimer = setInterval(() => {
+            if (!paused && gameRunning) spawnItem();
+        }, 1800); // 方块生成时间间隔
+
+        countdown = setInterval(() => {
+            if (!paused && gameRunning) {
+                timeLeft--;
+                timerDisplay.innerText = `剩余时间：${timeLeft}秒`;
+                if (timeLeft <= 0) showEndScreen();
+            }
+        }, 1000);
+    }
+
+    startButton.onclick = () => startGame();
 
     document.addEventListener('keydown', e => {
         if (e.code === 'Space' && !player.jump) {
-            player.vy = -20; // 增大跳跃间距
+            player.vy = -20;
             player.jump = true;
             jumpSound.play();
         }
-        if (e.code === 'KeyA') {
-            player.movingLeft = true;
-        }
-        if (e.code === 'KeyD') {
-            player.movingRight = true;
-        }
+        if (e.code === 'KeyA') player.movingLeft = true;
+        if (e.code === 'KeyD') player.movingRight = true;
         if (e.code === 'KeyP') {
             paused = !paused;
             pauseStatus.style.display = paused ? 'block' : 'none';
         }
     });
-
     document.addEventListener('keyup', e => {
-        if (e.code === 'KeyA') {
-            player.movingLeft = false;
-        }
-        if (e.code === 'KeyD') {
-            player.movingRight = false;
+        if (e.code === 'KeyA') player.movingLeft = false;
+        if (e.code === 'KeyD') player.movingRight = false;
+    });
+
+    leftBtn.addEventListener('touchstart', () => player.movingLeft = true);
+    leftBtn.addEventListener('touchend', () => player.movingLeft = false);
+
+    rightBtn.addEventListener('touchstart', () => player.movingRight = true);
+    rightBtn.addEventListener('touchend', () => player.movingRight = false);
+
+    jumpBtn.addEventListener('touchstart', () => {
+        if (!player.jump) {
+            player.vy = -20;
+            player.jump = true;
+            jumpSound.play();
         }
     });
 
-    setInterval(spawnItem, 3000);
-    const countdown = setInterval(() => {
-        if (paused) return;
-        timeLeft--;
-        timerDisplay.innerText = `剩余时间：${timeLeft}秒`;
-        if (timeLeft <= 0) {
-            clearInterval(countdown);
-            alert(`游戏结束！你的得分为：${score}`);
-            const name = prompt('请输入你的姓名记录得分：');
-            if (name) leaderboard.push({ name, score });
-            console.table(leaderboard);
-        }
-    }, 1000);
 </script>
 </body>
 </html>
