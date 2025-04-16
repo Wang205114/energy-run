@@ -110,7 +110,7 @@
     characterImg.src = 'https://cdn-icons-png.flaticon.com/512/3024/3024605.png';
 
     let player = {}, items = [], gameFrame, spawnTimer, countdown;
-    let ground = 450, gravity = 1, speed = 4; // Speed 调整为 4
+    let ground = 450, gravity = 1, speed =2; // Speed 调整为 4
     let score = 0, timeLeft = 60, paused = false, gameRunning = false;
     const questions = [ // 节能题库
         { q: '以下哪项是节能行为？', options: ['整晚开灯', '白天利用自然光', '冰箱门常开'], correct: 1 },
@@ -147,7 +147,7 @@
     }
 
     function spawnItem() {
-        if (Math.random() < 0.7) {  // 增加生成概率
+        if (Math.random() < 0.5) {  // 增加生成概率
             let q = questions[Math.floor(Math.random() * questions.length)];
             items.push({
                 x: canvas.width + 100, // 增加间距
