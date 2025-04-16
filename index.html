@@ -284,7 +284,7 @@
 
     document.addEventListener('keydown', e => {
         if (e.code === 'Space' && !player.jump) {
-            player.vy = -20;
+            player.vy = -15;
             player.jump = true;
             jumpSound.play();
         }
@@ -308,7 +308,7 @@
 
     jumpBtn.addEventListener('touchstart', () => {
         if (!player.jump) {
-            player.vy = -20;
+            player.vy = -15;
             player.jump = true;
             jumpSound.play();
         }
