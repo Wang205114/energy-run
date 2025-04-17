@@ -117,9 +117,8 @@
     const rightBtn = document.getElementById('rightBtn');
     const jumpBtn = document.getElementById('jumpBtn');
     const jumpSound = document.getElementById('jumpSound');
-
     const characterImg = new Image();
-    characterImg.src = 'https://cdn-icons-png.flaticon.com/512/3024/3024605.png';
+    characterImg.src = 'usagi.png';
 
     let player = {}, items = [], gameFrame, spawnTimer, countdown;
     let ground = 450, gravity = 1, speed =3; // Speed 调整为 4
@@ -151,7 +150,7 @@
     resizeCanvas();
 
     function resetGameState() {
-        player = { x: 50, y: 400, width: 40, height: 40, vy: 0, jump: false, speed: 3, movingLeft: false, movingRight: false };
+        player = { x: 50, y: 400, width: 80, height: 80, vy: 0, jump: false, speed: 3, movingLeft: false, movingRight: false };
         score = 0; timeLeft = 60; paused = false; items = []; gameRunning = true;
         scoreboard.innerText = `得分：${score}`;
         timerDisplay.innerText = `剩余时间：${timeLeft}秒`;
