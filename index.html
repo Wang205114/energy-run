@@ -150,7 +150,7 @@
     resizeCanvas();
 
     function resetGameState() {
-        player = { x: 50, y: 400, width: 80, height: 80, vy: 0, jump: false, speed: 3, movingLeft: false, movingRight: false };
+        player = { x: 50, y: 400, width: 60, height: 60, vy: 0, jump: false, speed: 3, movingLeft: false, movingRight: false };
         score = 0; timeLeft = 60; paused = false; items = []; gameRunning = true;
         scoreboard.innerText = `得分：${score}`;
         timerDisplay.innerText = `剩余时间：${timeLeft}秒`;
