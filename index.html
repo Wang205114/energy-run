@@ -243,6 +243,19 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
+        #orientationPrompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 100;
+            display: none;
+        }
     </style>
 </head>
 
@@ -287,8 +300,13 @@
 
 <!-- 全屏提示 -->
 <div id="fullscreenPrompt">
-    <p>点击下方按钮以全屏模式开始游戏</p>
+    <p>请将设备旋转至横向并点击下方按钮以全屏模式开始游戏</p>
     <button id="fullscreenStart">开启全屏</button>
+</div>
+
+<!-- 横屏提示 -->
+<div id="orientationPrompt">
+    <p>请将设备旋转至横向以继续游戏</p>
 </div>
 
 <script>
@@ -309,6 +327,7 @@
     characterImg.src = 'usagi.png';
     const fullscreenPrompt = document.getElementById('fullscreenPrompt');
     const fullscreenStart = document.getElementById('fullscreenStart');
+    const orientationPrompt = document.getElementById('orientationPrompt');
 
     // 游戏参数调整以适应手机屏幕
     let player = {},
@@ -416,8 +435,8 @@
         canvas.width = container.clientWidth;
         canvas.height = container.clientHeight;
 
-        // 根据屏幕高度调整地面位置
-        ground = canvas.height * 0.85;
+        // 调高地面高度
+        ground = canvas.height * 0.9;
 
         // 调整玩家大小以适应屏幕
         const playerSize = Math.min(canvas.width * 0.12, canvas.height * 0.12);
@@ -454,6 +473,7 @@
         if (gameRunning) {
             initGame();
         }
+        checkOrientation();
     });
 
     function spawnItem() {
@@ -708,6 +728,7 @@
         initGame();
         startScreen.style.display = 'none';
         fullscreenPrompt.style.display = 'none';
+        orientationPrompt.style.display = 'none';
 
         // 尝试播放背景音乐（需要用户交互）
         bgm.play().catch(e => console.log('自动播放被阻止，需要用户交互'));
@@ -785,9 +806,33 @@
     });
 
     fullscreenStart.addEventListener('click', () => {
+        if (window.innerWidth < window.innerHeight) {
+            orientationPrompt.style.display = 'block';
+            return;
+        }
         enterFullscreen();
         startGame();
     });
+
+    function checkOrientation() {
+        if (window.innerWidth < window.innerHeight) {
+            orientationPrompt.style.display = 'block';
+            if (gameRunning) {
+                paused = true;
+                pauseStatus.style.display = 'block';
+            }
+        } else {
+            orientationPrompt.style.display = 'none';
+            if (gameRunning) {
+                paused = false;
+                pauseStatus.style.display = 'none';
+                gameLoop();
+            }
+        }
+    }
+
+    window.addEventListener('orientationchange', checkOrientation);
+    checkOrientation();
 </script>
 </body>
 
