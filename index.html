@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>能源快跑</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="preload" href="https://i.imgur.com/0HmSQpo.png" as="image">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -248,7 +249,7 @@
 
     // 游戏参数调整以适应手机屏幕
     let player = {}, items = [], gameFrame, spawnTimer, countdown;
-    let ground, gravity = 0.5, speed = 3;
+    let ground, gravity = 0.3, speed = 3;
     let score = 0, timeLeft = 60, paused = false, gameRunning = false;
     let isFullscreen = false;
     let currentModalItem = null;
@@ -292,7 +293,7 @@
             height: playerSize,
             vy: 0,
             jump: false,
-            speed: canvas.width * 0.01,
+            speed: canvas.width * 0.003,
             movingLeft: false,
             movingRight: false
         };
@@ -594,7 +595,7 @@
     // 键盘控制
     document.addEventListener('keydown', e => {
         if (e.code === 'Space' && !player.jump) {
-            player.vy = -15;
+            player.vy = -10;
             player.jump = true;
             jumpSound.play();
         }
