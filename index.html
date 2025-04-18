@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>能源快跑</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link rel="preload" href="usagi.png" as="image">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -14,9 +14,14 @@
             touch-action: manipulation;
             height: 100vh;
             width: 100vw;
+            margin: 0;
+            padding: 0;
+            position: fixed;
         }
         #gameContainer {
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
@@ -26,12 +31,12 @@
             width: 100%;
             height: 100%;
             background: #c8e6c9;
-            border: 4px solid #388e3c;
-            border-radius: 10px;
+            border: none;
+            border-radius: 0;
         }
         #hud {
             position: absolute;
-            top: 10px;
+            top: env(safe-area-inset-top, 10px);
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -73,7 +78,7 @@
         }
         #controls {
             position: absolute;
-            bottom: 30px;
+            bottom: env(safe-area-inset-bottom, 30px);
             width: 100%;
             display: flex;
             justify-content: space-between;
@@ -180,8 +185,8 @@
         /* 全屏按钮 */
         #fullscreenBtn {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: env(safe-area-inset-top, 10px);
+            right: env(safe-area-inset-right, 10px);
             padding: 8px 12px;
             background-color: rgba(56, 142, 60, 0.7);
             color: white;
@@ -189,6 +194,23 @@
             border-radius: 5px;
             z-index: 5;
             font-size: 0.9em;
+        }
+
+        /* 横屏提示 */
+        body.landscape::before {
+            content: "请旋转设备为竖屏";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -274,11 +296,26 @@
         { q: '在宿舍节能应该避免什么行为？', options: ['电脑挂着下载通宵', '统一作息关灯', '使用节能插座'], correct: 0 }
     ];
 
+    // 检查屏幕方向
+    function checkOrientation() {
+        if (window.innerHeight > window.innerWidth) {
+            // 竖屏
+            document.body.classList.remove('landscape');
+            document.body.classList.add('portrait');
+        } else {
+            // 横屏
+            document.body.classList.remove('portrait');
+            document.body.classList.add('landscape');
+            // 提示用户旋转设备
+            showAlert('请将设备旋转为竖屏以获得最佳体验');
+        }
+    }
+
     // 初始化游戏画布
     function initGame() {
-        const container = document.getElementById('gameContainer');
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
+        // 使用窗口的实际尺寸
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
         // 根据屏幕高度调整地面位置
         ground = canvas.height * 0.85;
@@ -315,10 +352,14 @@
 
     // 窗口大小改变时重新初始化游戏
     window.addEventListener('resize', () => {
+        checkOrientation();
         if (gameRunning) {
             initGame();
         }
     });
+
+    // 监听方向变化
+    window.addEventListener('orientationchange', checkOrientation);
 
     function spawnItem() {
         if (Math.random() < 0.6) {
@@ -528,7 +569,7 @@
     function enterFullscreen() {
         const element = document.documentElement;
         if (element.requestFullscreen) {
-            element.requestFullscreen().catch(err => {
+            element.requestFullscreen({ navigationUI: "hide" }).catch(err => {
                 console.log(`全屏错误: ${err.message}`);
             });
         } else if (element.webkitRequestFullscreen) {
@@ -538,6 +579,13 @@
         }
         isFullscreen = true;
         fullscreenBtn.textContent = '退出全屏';
+
+        // 尝试锁定竖屏方向
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('portrait').catch(function(error) {
+                console.log('Orientation lock failed: ', error);
+            });
+        }
     }
 
     function exitFullscreen() {
@@ -569,6 +617,9 @@
     fullscreenBtn.addEventListener('click', toggleFullscreen);
 
     function startGame() {
+        // 初始检查方向
+        checkOrientation();
+
         initGame();
         startScreen.style.display = 'none';
 
@@ -634,7 +685,7 @@
     jumpBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         if (!player.jump) {
-            player.vy = -5;
+            player.vy = -10;
             player.jump = true;
             jumpSound.play();
         }
@@ -644,6 +695,9 @@
     document.addEventListener('click', () => {
         bgm.play().catch(e => console.log('音乐播放需要用户交互'));
     }, { once: true });
+
+    // 初始检查方向
+    checkOrientation();
 </script>
 </body>
 </html>
