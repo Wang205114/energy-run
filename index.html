@@ -221,6 +221,28 @@
             z-index: 5;
             font-size: 0.9em;
         }
+
+        #fullscreenPrompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 100;
+        }
+
+        #fullscreenPrompt button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #388e3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -263,6 +285,12 @@
     <button id="submitAnswer">提交答案</button>
 </div>
 
+<!-- 全屏提示 -->
+<div id="fullscreenPrompt">
+    <p>点击下方按钮以全屏模式开始游戏</p>
+    <button id="fullscreenStart">开启全屏</button>
+</div>
+
 <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -279,6 +307,8 @@
     const bgm = document.getElementById('bgm');
     const characterImg = new Image();
     characterImg.src = 'usagi.png';
+    const fullscreenPrompt = document.getElementById('fullscreenPrompt');
+    const fullscreenStart = document.getElementById('fullscreenStart');
 
     // 游戏参数调整以适应手机屏幕
     let player = {},
@@ -677,6 +707,7 @@
     function startGame() {
         initGame();
         startScreen.style.display = 'none';
+        fullscreenPrompt.style.display = 'none';
 
         // 尝试播放背景音乐（需要用户交互）
         bgm.play().catch(e => console.log('自动播放被阻止，需要用户交互'));
@@ -745,7 +776,7 @@
             jumpSound.play();
         }
     });
-    
+
     // 允许通过点击播放音乐
     document.addEventListener('click', () => {
         bgm.play().catch(e => console.log('音乐播放需要用户交互'));
@@ -753,10 +784,10 @@
         once: true
     });
 
-    // 页面加载完成后自动进入全屏
-    window.onload = function () {
+    fullscreenStart.addEventListener('click', () => {
         enterFullscreen();
-    };
+        startGame();
+    });
 </script>
 </body>
 
