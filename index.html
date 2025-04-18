@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+
+        <!-- 在<head>中添加以下内容 -->
+        <link rel="preload" href="https://i.imgur.com/0HmSQpo.png" as="image">
     <style>
         * {
             margin: 0;
@@ -90,40 +93,46 @@
         }
         #controls {
             position: fixed;
-            bottom: 20px;
+            bottom: 30px;
             width: 100%;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            gap: 30px;
             padding: 0 20px;
             z-index: 5;
         }
-        #controls button {
-            padding: 15px 25px;
-            font-size: 1.2em;
-            background-color: #66bb6a;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        #leftBtn {
-            margin-right: auto;
-        }
-        #jumpBtn {
-            margin: 0 auto;
-            background-color: #ff9800;
+
+        #leftBtn, #rightBtn {
             width: 70px;
             height: 70px;
-        }
-        #rightBtn {
-            margin-left: auto;
+            background-color: rgba(102, 187, 106, 0.8);
+            backdrop-filter: blur(5px);
+            border: 2px solid white;
         }
 
+        #jumpBtn {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 152, 0, 0.8);
+            backdrop-filter: blur(5px);
+            border: 2px solid white;
+        }
+
+        /* 添加按钮图标样式 */
+        #leftBtn::before {
+            content: "←";
+            font-size: 24px;
+        }
+
+        #rightBtn::before {
+            content: "→";
+            font-size: 24px;
+        }
+
+        #jumpBtn::before {
+            content: "↑";
+            font-size: 24px;
+        }
         /* 选择题弹窗 */
         #questionModal {
             position: fixed;
@@ -232,6 +241,33 @@
             z-index: 50;
             font-size: 0.9em;
             display: none;
+        }
+        @media (max-width: 480px) {
+            #controls {
+                bottom: 15px;
+                gap: 15px;
+            }
+
+            #leftBtn, #rightBtn {
+                width: 60px;
+                height: 60px;
+            }
+
+            #jumpBtn {
+                width: 70px;
+                height: 70px;
+            }
+        }
+
+        /* 横屏模式调整 */
+        @media (orientation: landscape) {
+            #controls {
+                bottom: 10px;
+            }
+
+            canvas {
+                height: 60vh;
+            }
         }
     </style>
 </head>
@@ -403,30 +439,21 @@
     }
 
     // 绘制玩家
+    // 在游戏变量部分添加
+    let playerImg = new Image();
+    playerImg.src = 'https://i.imgur.com/0HmSQpo.png'; // 替换为你的图片路径
+
+    // 修改drawPlayer函数
     function drawPlayer() {
-        ctx.fillStyle = '#2196F3';
-        ctx.beginPath();
-        ctx.roundRect(player.x, player.y, player.width, player.height, 10);
-        ctx.fill();
-
-        // 绘制简单的笑脸
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        ctx.arc(player.x + player.width/2, player.y + player.height/3, 8, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = 'black';
-        ctx.beginPath();
-        ctx.arc(player.x + player.width/3, player.y + player.height/3, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(player.x + player.width*2/3, player.y + player.height/3, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(player.x + player.width/2, player.y + player.height/2, 10, 0.1 * Math.PI, 0.9 * Math.PI);
-        ctx.stroke();
+        if (playerImg.complete) {
+            ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+        } else {
+            // 备用绘制方案（图片未加载时）
+            ctx.fillStyle = '#2196F3';
+            ctx.beginPath();
+            ctx.roundRect(player.x, player.y, player.width, player.height, 10);
+            ctx.fill();
+        }
     }
 
     // 绘制物品
