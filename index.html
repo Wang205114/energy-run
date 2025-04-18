@@ -493,7 +493,10 @@
     }
 
     function drawPlayer() {
+        console.log('Drawing player at:', player.x, player.y);
+        ctx.save();
         ctx.drawImage(characterImg, player.x, player.y, player.width, player.height);
+        ctx.restore();
     }
 
     function drawItems() {
@@ -833,7 +836,19 @@
 
     window.addEventListener('orientationchange', checkOrientation);
     checkOrientation();
+
+    characterImg.onload = function() {
+        console.log('Character image loaded successfully');
+        // 图片加载完成后再初始化游戏
+        initGame();
+        // 其他初始化逻辑
+    };
+
+    characterImg.onerror = function() {
+        console.error('Failed to load character image');
+    };
+
 </script>
 </body>
 
-</html>
+</html>    
