@@ -6,9 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-
-        <!-- 在<head>中添加以下内容 -->
-        <link rel="preload" href="https://i.imgur.com/0HmSQpo.png" as="image">
+    <link rel="preload" href="https://i.imgur.com/0HmSQpo.png" as="image">
     <style>
         * {
             margin: 0;
@@ -32,7 +30,7 @@
             border: 4px solid #388e3c;
             border-radius: 10px;
             width: 100%;
-            height: 70vh;
+            height: 60vh;
             max-height: 500px;
         }
         #hud {
@@ -41,12 +39,12 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 20px;
-            font-size: 1em;
+            gap: 15px;
+            font-size: 0.9em;
             color: #2e7d32;
             z-index: 5;
             background: rgba(255, 255, 255, 0.7);
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
@@ -68,72 +66,60 @@
         }
         #startScreen h1, #endScreen h2 {
             color: #388e3c;
-            margin-bottom: 20px;
-            font-size: 2em;
+            margin-bottom: 15px;
+            font-size: 1.8em;
         }
         #startScreen p, #endScreen p {
-            margin-bottom: 30px;
-            font-size: 1.2em;
+            margin-bottom: 20px;
+            font-size: 1em;
             color: #555;
-            max-width: 80%;
+            max-width: 90%;
         }
         #startScreen button, #endScreen button {
-            padding: 15px 30px;
-            font-size: 1.2em;
+            padding: 12px 25px;
+            font-size: 1em;
             background-color: #388e3c;
             color: white;
             border: none;
-            border-radius: 30px;
+            border-radius: 25px;
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             transition: all 0.3s;
         }
-        #startScreen button:active, #endScreen button:active {
-            transform: scale(0.95);
-        }
         #controls {
             position: fixed;
-            bottom: 30px;
+            bottom: 20px;
             width: 100%;
             display: flex;
             justify-content: center;
-            gap: 30px;
-            padding: 0 20px;
+            gap: 20px;
+            padding: 0 15px;
             z-index: 5;
         }
-
         #leftBtn, #rightBtn {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(102, 187, 106, 0.8);
+            border: 2px solid white;
+            border-radius: 50%;
+            font-size: 24px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #jumpBtn {
             width: 70px;
             height: 70px;
-            background-color: rgba(102, 187, 106, 0.8);
-            backdrop-filter: blur(5px);
-            border: 2px solid white;
-        }
-
-        #jumpBtn {
-            width: 80px;
-            height: 80px;
             background-color: rgba(255, 152, 0, 0.8);
-            backdrop-filter: blur(5px);
             border: 2px solid white;
-        }
-
-        /* 添加按钮图标样式 */
-        #leftBtn::before {
-            content: "←";
+            border-radius: 50%;
             font-size: 24px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-
-        #rightBtn::before {
-            content: "→";
-            font-size: 24px;
-        }
-
-        #jumpBtn::before {
-            content: "↑";
-            font-size: 24px;
-        }
-        /* 选择题弹窗 */
         #questionModal {
             position: fixed;
             top: 0;
@@ -145,39 +131,35 @@
             display: none;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
         }
         .modal-content {
             background-color: #fff;
             border-radius: 15px;
             width: 100%;
-            max-width: 500px;
-            padding: 20px;
+            max-width: 400px;
+            padding: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
         #questionText {
             color: #2e7d32;
-            margin-bottom: 20px;
-            font-size: 1.3em;
+            margin-bottom: 15px;
+            font-size: 1.2em;
             line-height: 1.4;
             text-align: center;
         }
         .option {
             display: block;
-            margin: 10px 0;
-            padding: 12px;
+            margin: 8px 0;
+            padding: 10px;
             width: 100%;
             background-color: #f5f5f5;
             border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 1em;
+            border-radius: 8px;
+            font-size: 0.9em;
             text-align: left;
             cursor: pointer;
             transition: all 0.3s;
-        }
-        .option:active {
-            background-color: #e8f5e9;
-            border-color: #81c784;
         }
         .option.selected {
             background-color: #c8e6c9;
@@ -186,22 +168,16 @@
             font-weight: bold;
         }
         #submitAnswer {
-            margin-top: 20px;
-            padding: 12px;
+            margin-top: 15px;
+            padding: 10px;
             width: 100%;
-            font-size: 1.1em;
+            font-size: 1em;
             background-color: #388e3c;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s;
         }
-        #submitAnswer:active {
-            background-color: #2e7d32;
-        }
-
-        /* 游戏容器 */
         #gameContainer {
             display: flex;
             flex-direction: column;
@@ -210,8 +186,6 @@
             height: 100vh;
             padding: 10px;
         }
-
-        /* 提示信息 */
         .toast {
             position: fixed;
             top: 50%;
@@ -219,55 +193,26 @@
             transform: translate(-50%, -50%);
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 15px 25px;
-            border-radius: 30px;
+            padding: 12px 20px;
+            border-radius: 25px;
             z-index: 300;
             display: none;
-            font-size: 1.1em;
+            font-size: 1em;
             text-align: center;
             max-width: 80%;
         }
-
-        /* 全屏提示 */
         #fullscreenPrompt {
             position: fixed;
-            bottom: 100px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0,0,0,0.7);
             color: white;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 20px;
             z-index: 50;
-            font-size: 0.9em;
+            font-size: 0.8em;
             display: none;
-        }
-        @media (max-width: 480px) {
-            #controls {
-                bottom: 15px;
-                gap: 15px;
-            }
-
-            #leftBtn, #rightBtn {
-                width: 60px;
-                height: 60px;
-            }
-
-            #jumpBtn {
-                width: 70px;
-                height: 70px;
-            }
-        }
-
-        /* 横屏模式调整 */
-        @media (orientation: landscape) {
-            #controls {
-                bottom: 10px;
-            }
-
-            canvas {
-                height: 60vh;
-            }
         }
     </style>
 </head>
@@ -388,22 +333,22 @@
     // 调整画布大小
     function resizeCanvas() {
         const width = Math.min(window.innerWidth, 500);
-        const height = Math.min(window.innerHeight * 0.7, 500);
+        const height = Math.min(window.innerHeight * 0.6, 500);
 
         canvas.width = width;
         canvas.height = height;
 
         // 设置地面位置
-        ground = height - 50;
+        ground = height - 40;
     }
 
     // 重置游戏状态
     function resetGameState() {
         player = {
             x: 50,
-            y: ground - 60,
-            width: 50,
-            height: 60,
+            y: ground - 50,
+            width: 40,
+            height: 50,
             vy: 0,
             jump: false,
             speed: 4,
@@ -428,9 +373,9 @@
             let q = questions[Math.floor(Math.random() * questions.length)];
             items.push({
                 x: canvas.width + 100,
-                y: ground - 40,
-                width: 40,
-                height: 40,
+                y: ground - 35,
+                width: 35,
+                height: 35,
                 question: q,
                 answered: false,
                 passed: false
@@ -439,19 +384,17 @@
     }
 
     // 绘制玩家
-    // 在游戏变量部分添加
     let playerImg = new Image();
-    playerImg.src = 'https://i.imgur.com/0HmSQpo.png'; // 替换为你的图片路径
+    playerImg.src = 'https://i.imgur.com/0HmSQpo.png';
 
-    // 修改drawPlayer函数
     function drawPlayer() {
         if (playerImg.complete) {
             ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
         } else {
-            // 备用绘制方案（图片未加载时）
+            // 备用绘制方案
             ctx.fillStyle = '#2196F3';
             ctx.beginPath();
-            ctx.roundRect(player.x, player.y, player.width, player.height, 10);
+            ctx.roundRect(player.x, player.y, player.width, player.height, 8);
             ctx.fill();
         }
     }
@@ -461,12 +404,12 @@
         ctx.fillStyle = '#FF9800';
         items.forEach(item => {
             ctx.beginPath();
-            ctx.roundRect(item.x, item.y, item.width, item.height, 8);
+            ctx.roundRect(item.x, item.y, item.width, item.height, 6);
             ctx.fill();
 
             // 绘制问号
             ctx.fillStyle = 'white';
-            ctx.font = 'bold 20px Arial';
+            ctx.font = 'bold 18px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('?', item.x + item.width/2, item.y + item.height/2);
@@ -705,8 +648,9 @@
     jumpBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         if (!player.jump) {
-            player.vy = -12;
+            player.vy = -10;
             player.jump = true;
+            jumpSound.currentTime = 0;
             jumpSound.play().catch(e => console.log('跳跃音效错误:', e));
         }
     });
@@ -714,8 +658,9 @@
     // 键盘控制
     document.addEventListener('keydown', e => {
         if (e.code === 'Space' && !player.jump) {
-            player.vy = -12;
+            player.vy = -10;
             player.jump = true;
+            jumpSound.currentTime = 0;
             jumpSound.play().catch(e => console.log('跳跃音效错误:', e));
         }
         if (e.code === 'KeyA' || e.code === 'ArrowLeft') player.movingLeft = true;
