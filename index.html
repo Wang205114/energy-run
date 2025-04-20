@@ -1,242 +1,107 @@
 <!DOCTYPE html>
 <html lang="zh">
-
 <head>
     <meta charset="UTF-8">
     <title>能源快跑</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="preload" href="usagi.png" as="image">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(to bottom, #e0f2f1, #fff);
             overflow: hidden;
-            touch-action: manipulation;
-            height: 100vh;
-            width: 100vw;
         }
-
-        #gameContainer {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
         canvas {
             display: block;
-            width: 100%;
-            height: 100%;
+            margin: auto;
             background: #c8e6c9;
             border: 4px solid #388e3c;
             border-radius: 10px;
+            max-width: 100%;
         }
-
         #hud {
             position: absolute;
             top: 10px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 20px;
-            font-size: 1em;
+            gap: 40px;
+            font-size: 1.2em;
             color: #2e7d32;
             z-index: 5;
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 8px 15px;
-            border-radius: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-
-        #pauseStatus {
-            display: none;
-        }
-
-        #startScreen,
-        #endScreen {
+        #pauseStatus { display: none; }
+        #startScreen, #endScreen {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            font-size: 1.5em;
+            font-size: 2em;
             color: #388e3c;
             padding: 20px;
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(255, 255, 255, 0.8);
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 10;
-            width: 90%;
-            max-width: 400px;
         }
-
-        #startScreen button,
-        #endScreen button {
-            padding: 12px 25px;
-            font-size: 1em;
+        #startScreen button, #endScreen button {
+            padding: 10px 20px;
+            font-size: 1.2em;
             background-color: #388e3c;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
-            margin-top: 15px;
-            width: 80%;
         }
-
         #controls {
             position: absolute;
-            bottom: 30px;
+            bottom: 20px;
             width: 100%;
             display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
+            justify-content: center;
+            gap: 60px;
             z-index: 5;
         }
-
         #controls button {
-            padding: 15px 25px;
-            font-size: 1.2em;
+            padding: 20px 40px;
+            font-size: 1.4em;
             background-color: #66bb6a;
             color: white;
             border: none;
-            border-radius: 50%;
-            width: 70px;
-            height: 70px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            min-width: 80px;
         }
 
-        #leftRightGroup {
-            display: flex;
-            gap: 20px;
+        #leftBtn {
+            margin-right: 10px;
         }
-
-        #leftBtn,
-        #rightBtn {
-            margin: 0;
-        }
-
         #jumpBtn {
-            margin-left: auto;
+            margin: 0 10px;
+        }
+        #rightBtn {
+            margin-left: -65px;
         }
 
-        /* 选择题弹窗 */
+        /* 弹窗样式 */
         #questionModal {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 400px;
+            width: 70%;
             padding: 20px;
-            background-color: #fff;
+            background-color: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 20;
             display: none;
             text-align: center;
-            border: 3px solid #388e3c;
         }
 
-        #questionModal h3 {
-            color: #2e7d32;
-            margin-bottom: 20px;
-            font-size: 1.2em;
-            line-height: 1.4;
-        }
-
-        .option {
-            display: block;
-            margin: 12px auto;
-            padding: 12px 15px;
-            width: 100%;
-            background-color: #f5f5f5;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 1em;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .option:hover {
-            background-color: #e8f5e9;
-            border-color: #81c784;
-        }
-
-        .option.selected {
-            background-color: #c8e6c9;
-            border-color: #388e3c;
-            color: #2e7d32;
-            font-weight: bold;
-        }
-
-        #submitAnswer {
-            margin-top: 20px;
-            padding: 12px 25px;
-            font-size: 1em;
-            background-color: #388e3c;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            width: 100%;
-        }
-
-        #submitAnswer:hover {
-            background-color: #2e7d32;
-        }
-
-        .modal-header {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .modal-header::after {
-            content: "";
-            display: block;
-            width: 50px;
-            height: 3px;
-            background: #81c784;
-            margin: 10px auto;
-            border-radius: 3px;
-        }
-
-        /* 全屏按钮 */
-        #fullscreenBtn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 8px 12px;
-            background-color: rgba(56, 142, 60, 0.7);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            z-index: 5;
-            font-size: 0.9em;
-        }
-
-        #fullscreenPrompt {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            z-index: 100;
-        }
-
-        #fullscreenPrompt button {
-            padding: 10px 20px;
+        #questionModal button {
             margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 1.2em;
             background-color: #388e3c;
             color: white;
             border: none;
@@ -244,69 +109,42 @@
             cursor: pointer;
         }
 
-        #orientationPrompt {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            z-index: 100;
-            display: none;
+        #questionModal select {
+            padding: 10px;
+            font-size: 1.2em;
         }
     </style>
 </head>
-
 <body>
-<div id="gameContainer">
-    <div id="hud">
-        <div id="scoreboard">得分：0</div>
-        <div id="timer">剩余时间：60秒</div>
-        <div id="pauseStatus">暂停中</div>
-    </div>
-    <canvas id="gameCanvas"></canvas>
-    <button id="fullscreenBtn">全屏</button>
-
-    <div id="startScreen">
-        <p>欢迎来到《能源快跑》！</p>
-        <button id="startButton">开始游戏</button>
-    </div>
-
-    <div id="controls">
-        <div id="leftRightGroup">
-            <button id="leftBtn">←</button>
-            <button id="rightBtn">→</button>
-        </div>
-        <button id="jumpBtn">↑</button>
-    </div>
+<div id="hud">
+    <div id="scoreboard">得分：0</div>
+    <div id="timer">剩余时间：60秒</div>
+    <div id="pauseStatus">暂停中</div>
 </div>
-
-<audio id="bgm" src="https://cdn.pixabay.com/download/audio/2023/03/27/audio_1dc7e4d0fd.mp3?filename=arcade-112336.mp3"
-       loop></audio>
+<canvas id="gameCanvas" width="800" height="500"></canvas>
+<audio id="bgm" src="https://cdn.pixabay.com/download/audio/2023/03/27/audio_1dc7e4d0fd.mp3?filename=arcade-112336.mp3" autoplay loop></audio>
 <audio id="jumpSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_a326c93f3f.mp3"></audio>
 
-<!-- 选择题弹窗 -->
+<div id="startScreen">
+    <p>欢迎来到《能源快跑》！</p>
+    <button id="startButton">开始游戏</button>
+</div>
+
+<div id="controls">
+    <button id="leftBtn">左</button>
+    <button id="rightBtn">右</button>
+    <button id="jumpBtn">跳跃</button>
+</div>
+
+<!-- 自定义弹窗 -->
 <div id="questionModal">
-    <div class="modal-header">
-        <h3 id="questionText"></h3>
-    </div>
-    <div id="optionsContainer">
-        <!-- 选项将通过JavaScript动态添加 -->
-    </div>
-    <button id="submitAnswer">提交答案</button>
-</div>
-
-<!-- 全屏提示 -->
-<div id="fullscreenPrompt">
-    <p>请将设备旋转至横向并点击下方按钮以全屏模式开始游戏</p>
-    <button id="fullscreenStart">开启全屏</button>
-</div>
-
-<!-- 横屏提示 -->
-<div id="orientationPrompt">
-    <p>请将设备旋转至横向以继续游戏</p>
+    <p id="questionText"></p>
+    <select id="answerSelect">
+        <option value="0"></option>
+        <option value="1"></option>
+        <option value="2"></option>
+    </select>
+    <button id="submitAnswer">提交</button>
 </div>
 
 <script>
@@ -321,182 +159,61 @@
     const rightBtn = document.getElementById('rightBtn');
     const jumpBtn = document.getElementById('jumpBtn');
     const jumpSound = document.getElementById('jumpSound');
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-    const bgm = document.getElementById('bgm');
     const characterImg = new Image();
-    characterImg.src = 'usagi.png';
-    const fullscreenPrompt = document.getElementById('fullscreenPrompt');
-    const fullscreenStart = document.getElementById('fullscreenStart');
-    const orientationPrompt = document.getElementById('orientationPrompt');
+    characterImg.src = 'https://i.imgur.com/0HmSQpo.png';
 
-    // 游戏参数调整以适应手机屏幕
-    let player = {},
-        items = [],
-        gameFrame,
-        spawnTimer,
-        countdown;
-    let ground,
-        gravity = 0.3,
-        speed = 3;
-    let score = 0,
-        timeLeft = 60,
-        paused = false,
-        gameRunning = false;
+    let player = {}, items = [], gameFrame, spawnTimer, countdown;
+    let ground = 450, gravity = 1, speed = 3;
+    let score = 0, timeLeft = 60, paused = false, gameRunning = false;
     let isFullscreen = false;
     let currentModalItem = null;
-    let selectedOption = null;
-
     const questions = [ // 节能题库
-        {
-            q: '以下哪项是节能行为？',
-            options: ['整晚开灯', '白天利用自然光', '冰箱门常开'],
-            correct: 1
-        },
-        {
-            q: '以下哪项更节能？',
-            options: ['空教室开空调', '拔掉电器插头', '电脑不休眠'],
-            correct: 1
-        },
-        {
-            q: '频繁开关冰箱会怎样？',
-            options: ['省电', '加快制冷', '浪费能源'],
-            correct: 2
-        },
-        {
-            q: '哪种行为更节能？',
-            options: ['将饭菜反复加热', '合理安排用餐量', '长期开灯做作业'],
-            correct: 1
-        },
-        {
-            q: '如何节约空调能耗？',
-            options: ['经常开关', '调至最低温度', '设定合理温度并定期清洗过滤网'],
-            correct: 2
-        },
-        {
-            q: '用电脑后应怎样节能？',
-            options: ['随时关机', '待机不断电', '开启节能模式并及时关闭显示器'],
-            correct: 2
-        },
-        {
-            q: '洗衣更节能的做法是？',
-            options: ['多次少量洗', '集中洗涤、满载使用', '用热水漂洗'],
-            correct: 1
-        },
-        {
-            q: '校园中哪个用电行为应避免？',
-            options: ['空教室灯全开', '走廊传感灯', '公共区域定时照明'],
-            correct: 0
-        },
-        {
-            q: '下列哪种设备最省电？',
-            options: ['白炽灯', '节能灯', '高压钠灯'],
-            correct: 1
-        },
-        {
-            q: '合理安排作息可带来什么节能效果？',
-            options: ['避免夜间照明', '避免清晨活动', '提升能耗'],
-            correct: 0
-        },
-        {
-            q: '以下哪项是绿色出行方式？',
-            options: ['打车', '拼车', '骑自行车'],
-            correct: 2
-        },
-        {
-            q: '教室节能应采取哪种做法？',
-            options: ['下课忘关灯', '随手关灯', '白天也开灯'],
-            correct: 1
-        },
-        {
-            q: '夏天使用空调最合理的温度设置是？',
-            options: ['18℃', '20℃', '26℃'],
-            correct: 2
-        },
-        {
-            q: '充电完成后应做什么？',
-            options: ['继续充电', '拔掉充电器', '无所谓'],
-            correct: 1
-        },
-        {
-            q: '什么样的照明方式更节能？',
-            options: ['集中照明', '过度照明', '边走边开灯'],
-            correct: 0
-        },
-        {
-            q: '在宿舍节能应该避免什么行为？',
-            options: ['电脑挂着下载通宵', '统一作息关灯', '使用节能插座'],
-            correct: 0
-        }
+        { q: '以下哪项是节能行为？', options: ['整晚开灯', '白天利用自然光', '冰箱门常开'], correct: 1 },
+        { q: '以下哪项更节能？', options: ['空教室开空调', '拔掉电器插头', '电脑不休眠'], correct: 1 },
+        { q: '频繁开关冰箱会怎样？', options: ['省电', '加快制冷', '浪费能源'], correct: 2 },
+        { q: '哪种行为更节能？', options: ['将饭菜反复加热', '合理安排用餐量', '长期开灯做作业'], correct: 1 },
+        { q: '如何节约空调能耗？', options: ['经常开关', '调至最低温度', '设定合理温度并定期清洗过滤网'], correct: 2 },
+        { q: '用电脑后应怎样节能？', options: ['随时关机', '待机不断电', '开启节能模式并及时关闭显示器'], correct: 2 },
+        { q: '洗衣更节能的做法是？', options: ['多次少量洗', '集中洗涤、满载使用', '用热水漂洗'], correct: 1 },
+        { q: '校园中哪个用电行为应避免？', options: ['空教室灯全开', '走廊传感灯', '公共区域定时照明'], correct: 0 },
+        { q: '下列哪种设备最省电？', options: ['白炽灯', '节能灯', '高压钠灯'], correct: 1 },
+        { q: '合理安排作息可带来什么节能效果？', options: ['避免夜间照明', '避免清晨活动', '提升能耗'], correct: 0 },
+        { q: '以下哪项是绿色出行方式？', options: ['打车', '拼车', '骑自行车'], correct: 2 },
+        { q: '教室节能应采取哪种做法？', options: ['下课忘关灯', '随手关灯', '白天也开灯'], correct: 1 },
+        { q: '夏天使用空调最合理的温度设置是？', options: ['18℃', '20℃', '26℃'], correct: 2 },
+        { q: '充电完成后应做什么？', options: ['继续充电', '拔掉充电器', '无所谓'], correct: 1 },
+        { q: '什么样的照明方式更节能？', options: ['集中照明', '过度照明', '边走边开灯'], correct: 0 },
+        { q: '在宿舍节能应该避免什么行为？', options: ['电脑挂着下载通宵', '统一作息关灯', '使用节能插座'], correct: 0 }
     ];
 
-    // 初始化游戏画布
-    function initGame() {
-        const container = document.getElementById('gameContainer');
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
+    function resizeCanvas() {
+        canvas.width = Math.min(window.innerWidth - 20, 800);
+        canvas.height = 500;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
-        // 调高地面高度
-        ground = canvas.height * 0.9;
-
-        // 调整玩家大小以适应屏幕
-        const playerSize = Math.min(canvas.width * 0.12, canvas.height * 0.12);
-
-        player = {
-            x: canvas.width * 0.1,
-            y: ground - playerSize,
-            width: playerSize,
-            height: playerSize,
-            vy: 0,
-            jump: false,
-            speed: canvas.width * 0.003,
-            movingLeft: false,
-            movingRight: false
-        };
-
-        // 调整物品大小
-        const itemSize = playerSize * 0.7;
-
-        // 重置游戏状态
-        score = 0;
-        timeLeft = 60;
-        paused = false;
-        items = [];
-        gameRunning = true;
-
+    function resetGameState() {
+        player = { x: 50, y: 400, width: 60, height: 60, vy: 0, jump: false, speed: 3, movingLeft: false, movingRight: false };
+        score = 0; timeLeft = 60; paused = false; items = []; gameRunning = true;
         scoreboard.innerText = `得分：${score}`;
         timerDisplay.innerText = `剩余时间：${timeLeft}秒`;
         pauseStatus.style.display = 'none';
     }
 
-    // 窗口大小改变时重新初始化游戏
-    window.addEventListener('resize', () => {
-        if (gameRunning) {
-            initGame();
-        }
-        checkOrientation();
-    });
-
     function spawnItem() {
         if (Math.random() < 0.6) {
             let q = questions[Math.floor(Math.random() * questions.length)];
-            const itemSize = player.width * 0.7;
             items.push({
-                x: canvas.width,
-                y: ground - itemSize,
-                width: itemSize,
-                height: itemSize,
-                question: q,
-                answered: false,
-                passed: false
+                x: canvas.width + 100,
+                y: 400, width: 40, height: 40,
+                question: q, answered: false, passed: false
             });
         }
     }
 
     function drawPlayer() {
-        console.log('Drawing player at:', player.x, player.y);
-        ctx.save();
         ctx.drawImage(characterImg, player.x, player.y, player.width, player.height);
-        ctx.restore();
     }
 
     function drawItems() {
@@ -509,7 +226,7 @@
     function updateItems() {
         items.forEach(item => {
             item.x -= speed;
-            if (!item.answered &&!item.passed && item.x + item.width < player.x) {
+            if (!item.answered && !item.passed && item.x + item.width < player.x) {
                 score += 10;
                 item.passed = true;
                 scoreboard.innerText = `得分：${score}`;
@@ -535,35 +252,14 @@
 
     function showQuestionModal(item) {
         currentModalItem = item;
-        selectedOption = null;
         const modal = document.getElementById('questionModal');
         const questionText = document.getElementById('questionText');
-        const optionsContainer = document.getElementById('optionsContainer');
+        const answerSelect = document.getElementById('answerSelect');
         const submitButton = document.getElementById('submitAnswer');
 
         questionText.innerText = item.question.q;
-        optionsContainer.innerHTML = '';
-
-        // 创建选项按钮
-        item.question.options.forEach((option, index) => {
-            const optionElement = document.createElement('button');
-            optionElement.className = 'option';
-            optionElement.textContent = option;
-            optionElement.dataset.index = index;
-
-            optionElement.addEventListener('click', function () {
-                // 移除之前选中的样式
-                document.querySelectorAll('.option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-
-                // 添加选中样式
-                this.classList.add('selected');
-                selectedOption = parseInt(this.dataset.index);
-            });
-
-            optionsContainer.appendChild(optionElement);
-        });
+        answerSelect.innerHTML = item.question.options.map((option, index) =>
+            `<option value="${index}">${option}</option>`).join('');
 
         modal.style.display = 'block';
 
@@ -576,19 +272,14 @@
 
         // 添加新的点击事件
         submitButton.onclick = () => {
-            if (selectedOption === null) {
-                showAlert('请选择一个答案！');
-                return;
-            }
-
-            if (selectedOption === item.question.correct) {
+            const answer = parseInt(answerSelect.value);
+            if (answer === item.question.correct) {
                 score += 10;
-                showAlert('回答正确！+10分', 'success');
+                showAlert('回答正确！+10分');
             } else {
                 score -= 5;
-                showAlert(`回答错误！-5分 (正确答案: ${item.question.options[item.question.correct]})`, 'error');
+                showAlert('回答错误！-5分');
             }
-
             scoreboard.innerText = `得分：${score}`;
             modal.style.display = 'none';
 
@@ -603,22 +294,17 @@
         };
     }
 
-    function showAlert(message, type = 'info') {
+    function showAlert(message) {
         const alertDiv = document.createElement('div');
         alertDiv.style.position = 'fixed';
         alertDiv.style.top = '50%';
         alertDiv.style.left = '50%';
         alertDiv.style.transform = 'translate(-50%, -50%)';
-        alertDiv.style.backgroundColor = type === 'error' ? 'rgba(239, 83, 80, 0.9)' :
-            type === 'success' ? 'rgba(102, 187, 106, 0.9)' : 'rgba(33, 33, 33, 0.9)';
+        alertDiv.style.backgroundColor = 'rgba(0,0,0,0.8)';
         alertDiv.style.color = 'white';
-        alertDiv.style.padding = '15px 25px';
+        alertDiv.style.padding = '20px';
         alertDiv.style.borderRadius = '10px';
         alertDiv.style.zIndex = '100';
-        alertDiv.style.fontSize = '1em';
-        alertDiv.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
-        alertDiv.style.maxWidth = '80%';
-        alertDiv.style.textAlign = 'center';
         alertDiv.textContent = message;
 
         document.body.appendChild(alertDiv);
@@ -637,13 +323,13 @@
         const endScreen = document.createElement('div');
         endScreen.id = 'endScreen';
         endScreen.innerHTML = `
-                <h2>游戏结束</h2>
-                <p>你的得分是：<strong>${score}</strong></p>
-                <button id="restartBtn">再来一局</button>
-            `;
-        document.getElementById('gameContainer').appendChild(endScreen);
+        <h2>游戏结束</h2>
+        <p>你的得分是：<strong>${score}</strong></p>
+        <button id="restartBtn">再来一局</button>
+    `;
+        document.body.appendChild(endScreen);
         document.getElementById('restartBtn').onclick = () => {
-            document.getElementById('gameContainer').removeChild(endScreen);
+            document.body.removeChild(endScreen);
             startGame();
         };
     }
@@ -653,9 +339,8 @@
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#a5d6a7';
-        ctx.fillRect(0, ground, canvas.width, canvas.height - ground);
+        ctx.fillRect(0, ground, canvas.width, 50);
 
-        // 更新玩家位置
         player.y += player.vy;
         player.vy += gravity;
         if (player.y > ground - player.height) {
@@ -675,15 +360,6 @@
         gameFrame = requestAnimationFrame(gameLoop);
     }
 
-    // 全屏功能
-    function toggleFullscreen() {
-        if (!isFullscreen) {
-            enterFullscreen();
-        } else {
-            exitFullscreen();
-        }
-    }
-
     function enterFullscreen() {
         const element = document.documentElement;
         if (element.requestFullscreen) {
@@ -696,7 +372,6 @@
             element.msRequestFullscreen();
         }
         isFullscreen = true;
-        fullscreenBtn.textContent = '退出全屏';
     }
 
     function exitFullscreen() {
@@ -708,33 +383,27 @@
             document.msExitFullscreen();
         }
         isFullscreen = false;
-        fullscreenBtn.textContent = '全屏';
     }
 
     // 监听全屏状态变化
     document.addEventListener('fullscreenchange', () => {
         isFullscreen = !!document.fullscreenElement;
-        fullscreenBtn.textContent = isFullscreen ? '退出全屏' : '全屏';
     });
     document.addEventListener('webkitfullscreenchange', () => {
         isFullscreen = !!document.webkitFullscreenElement;
-        fullscreenBtn.textContent = isFullscreen ? '退出全屏' : '全屏';
     });
     document.addEventListener('msfullscreenchange', () => {
         isFullscreen = !!document.msFullscreenElement;
-        fullscreenBtn.textContent = isFullscreen ? '退出全屏' : '全屏';
     });
 
-    fullscreenBtn.addEventListener('click', toggleFullscreen);
-
     function startGame() {
-        initGame();
+        resetGameState();
         startScreen.style.display = 'none';
-        fullscreenPrompt.style.display = 'none';
-        orientationPrompt.style.display = 'none';
 
-        // 尝试播放背景音乐（需要用户交互）
-        bgm.play().catch(e => console.log('自动播放被阻止，需要用户交互'));
+        // 延迟进入全屏，避免iOS Safari的问题
+        setTimeout(() => {
+            enterFullscreen();
+        }, 200);
 
         gameLoop();
 
@@ -753,102 +422,38 @@
 
     startButton.onclick = () => startGame();
 
-    // 键盘控制
     document.addEventListener('keydown', e => {
-        if (e.code === 'Space' &&!player.jump) {
-            player.vy = -10;
+        if (e.code === 'Space' && !player.jump) {
+            player.vy = -15;
             player.jump = true;
             jumpSound.play();
         }
-        if (e.code === 'KeyA' || e.code === 'ArrowLeft') player.movingLeft = true;
-        if (e.code === 'KeyD' || e.code === 'ArrowRight') player.movingRight = true;
+        if (e.code === 'KeyA') player.movingLeft = true;
+        if (e.code === 'KeyD') player.movingRight = true;
         if (e.code === 'KeyP') {
-            paused =!paused;
+            paused = !paused;
             pauseStatus.style.display = paused ? 'block' : 'none';
         }
     });
 
     document.addEventListener('keyup', e => {
-        if (e.code === 'KeyA' || e.code === 'ArrowLeft') player.movingLeft = false;
-        if (e.code === 'KeyD' || e.code === 'ArrowRight') player.movingRight = false;
+        if (e.code === 'KeyA') player.movingLeft = false;
+        if (e.code === 'KeyD') player.movingRight = false;
     });
 
-    // 触摸控制
-    leftBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        player.movingLeft = true;
-    });
-    leftBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        player.movingLeft = false;
-    });
+    leftBtn.addEventListener('touchstart', () => player.movingLeft = true);
+    leftBtn.addEventListener('touchend', () => player.movingLeft = false);
 
-    rightBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        player.movingRight = true;
-    });
-    rightBtn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        player.movingRight = false;
-    });
+    rightBtn.addEventListener('touchstart', () => player.movingRight = true);
+    rightBtn.addEventListener('touchend', () => player.movingRight = false);
 
-    jumpBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
+    jumpBtn.addEventListener('touchstart', () => {
         if (!player.jump) {
-            player.vy = -10;
+            player.vy = -15;
             player.jump = true;
             jumpSound.play();
         }
     });
-
-    // 允许通过点击播放音乐
-    document.addEventListener('click', () => {
-        bgm.play().catch(e => console.log('音乐播放需要用户交互'));
-    }, {
-        once: true
-    });
-
-    fullscreenStart.addEventListener('click', () => {
-        if (window.innerWidth < window.innerHeight) {
-            orientationPrompt.style.display = 'block';
-            return;
-        }
-        enterFullscreen();
-        startGame();
-    });
-
-    function checkOrientation() {
-        if (window.innerWidth < window.innerHeight) {
-            orientationPrompt.style.display = 'block';
-            if (gameRunning) {
-                paused = true;
-                pauseStatus.style.display = 'block';
-            }
-        } else {
-            orientationPrompt.style.display = 'none';
-            if (gameRunning) {
-                paused = false;
-                pauseStatus.style.display = 'none';
-                gameLoop();
-            }
-        }
-    }
-
-    window.addEventListener('orientationchange', checkOrientation);
-    checkOrientation();
-
-    characterImg.onload = function() {
-        console.log('Character image loaded successfully');
-        // 图片加载完成后再初始化游戏
-        initGame();
-        // 其他初始化逻辑
-    };
-
-    characterImg.onerror = function() {
-        console.error('Failed to load character image');
-    };
-
 </script>
 </body>
-
-</html>    
+</html>
