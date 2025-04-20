@@ -71,6 +71,18 @@
             border-radius: 12px;
             min-width: 80px;
         }
+
+        #leftBtn {
+            margin-right: 10px;
+        }
+        #jumpBtn {
+            margin: 0 10px;
+        }
+        #rightBtn {
+            margin-left: -65px;
+        }
+
+        /* 弹窗样式 */
         #questionModal {
             position: fixed;
             top: 50%;
@@ -85,6 +97,7 @@
             display: none;
             text-align: center;
         }
+
         #questionModal button {
             margin-top: 10px;
             padding: 10px 20px;
@@ -95,6 +108,7 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
         #questionModal select {
             padding: 10px;
             font-size: 1.2em;
@@ -122,9 +136,14 @@
     <button id="jumpBtn">跳跃</button>
 </div>
 
+<!-- 自定义弹窗 -->
 <div id="questionModal">
     <p id="questionText"></p>
-    <select id="answerSelect"></select>
+    <select id="answerSelect">
+        <option value="0"></option>
+        <option value="1"></option>
+        <option value="2"></option>
+    </select>
     <button id="submitAnswer">提交</button>
 </div>
 
@@ -141,11 +160,12 @@
     const jumpBtn = document.getElementById('jumpBtn');
     const jumpSound = document.getElementById('jumpSound');
     const characterImg = new Image();
-    characterImg.src = 'https://i.imgur.com/0HmSQpo.png'; // 乌萨奇角色
+    characterImg.src = 'https://i.imgur.com/0HmSQpo.png';
 
     let player = {}, items = [], gameFrame, spawnTimer, countdown;
     let ground = 450, gravity = 1, speed = 3;
     let score = 0, timeLeft = 60, paused = false, gameRunning = false;
+    let isFullscreen = false;
     let currentModalItem = null;
     const questions = [ // 节能题库
         { q: '以下哪项是节能行为？', options: ['整晚开灯', '白天利用自然光', '冰箱门常开'], correct: 1 },
@@ -168,6 +188,7 @@
 
     function resizeCanvas() {
         canvas.width = Math.min(window.innerWidth - 20, 800);
+        canvas.height = 500;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
@@ -183,7 +204,11 @@
     function spawnItem() {
         if (Math.random() < 0.6) {
             let q = questions[Math.floor(Math.random() * questions.length)];
-            items.push({ x: canvas.width + 100, y: 400, width: 40, height: 40, question: q, answered: false, passed: false });
+            items.push({
+                x: canvas.width + 100,
+                y: 400, width: 40, height: 40,
+                question: q, answered: false, passed: false
+            });
         }
     }
 
@@ -219,6 +244,8 @@
                 player.y + player.height > item.y) {
                 showQuestionModal(item);
                 item.answered = true;
+                player.movingLeft = false;
+                player.movingRight = false;
             }
         });
     }
@@ -233,19 +260,58 @@
         questionText.innerText = item.question.q;
         answerSelect.innerHTML = item.question.options.map((option, index) =>
             `<option value="${index}">${option}</option>`).join('');
+
         modal.style.display = 'block';
+
+        // 暂停游戏
         paused = true;
         pauseStatus.style.display = 'block';
+
+        // 清除旧的点击事件
+        submitButton.onclick = null;
+
+        // 添加新的点击事件
         submitButton.onclick = () => {
             const answer = parseInt(answerSelect.value);
-            score += (answer === item.question.correct) ? 10 : -5;
-            alert(answer === item.question.correct ? '回答正确！+10分' : '回答错误！-5分');
+            if (answer === item.question.correct) {
+                score += 10;
+                showAlert('回答正确！+10分');
+            } else {
+                score -= 5;
+                showAlert('回答错误！-5分');
+            }
             scoreboard.innerText = `得分：${score}`;
             modal.style.display = 'none';
+
+            // 恢复游戏
             paused = false;
             pauseStatus.style.display = 'none';
-            if (gameRunning) gameLoop();
+
+            // 重新开始游戏循环
+            if (gameRunning) {
+                gameLoop();
+            }
         };
+    }
+
+    function showAlert(message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.style.position = 'fixed';
+        alertDiv.style.top = '50%';
+        alertDiv.style.left = '50%';
+        alertDiv.style.transform = 'translate(-50%, -50%)';
+        alertDiv.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        alertDiv.style.color = 'white';
+        alertDiv.style.padding = '20px';
+        alertDiv.style.borderRadius = '10px';
+        alertDiv.style.zIndex = '100';
+        alertDiv.textContent = message;
+
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            document.body.removeChild(alertDiv);
+        }, 1500);
     }
 
     function showEndScreen() {
@@ -253,13 +319,14 @@
         cancelAnimationFrame(gameFrame);
         clearInterval(spawnTimer);
         clearInterval(countdown);
+
         const endScreen = document.createElement('div');
         endScreen.id = 'endScreen';
         endScreen.innerHTML = `
-                <h2>游戏结束</h2>
-                <p>你的得分是：<strong>${score}</strong></p>
-                <button id="restartBtn">再来一局</button>
-            `;
+        <h2>游戏结束</h2>
+        <p>你的得分是：<strong>${score}</strong></p>
+        <button id="restartBtn">再来一局</button>
+    `;
         document.body.appendChild(endScreen);
         document.getElementById('restartBtn').onclick = () => {
             document.body.removeChild(endScreen);
@@ -269,12 +336,10 @@
 
     function gameLoop() {
         if (!gameRunning || paused) return;
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#a5d6a7';
         ctx.fillRect(0, ground, canvas.width, 50);
-
-        if (player.movingLeft) player.x -= player.speed;
-        if (player.movingRight) player.x += player.speed;
 
         player.y += player.vy;
         player.vy += gravity;
@@ -284,39 +349,111 @@
             player.jump = false;
         }
 
+        if (player.movingLeft && player.x > 0) player.x -= player.speed;
+        if (player.movingRight && player.x + player.width < canvas.width) player.x += player.speed;
+
         drawPlayer();
-        drawItems();
         updateItems();
+        drawItems();
         checkCollision();
+
         gameFrame = requestAnimationFrame(gameLoop);
     }
 
+    function enterFullscreen() {
+        const element = document.documentElement;
+        if (element.requestFullscreen) {
+            element.requestFullscreen().catch(err => {
+                console.log(`全屏错误: ${err.message}`);
+            });
+        } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+        }
+        isFullscreen = true;
+    }
+
+    function exitFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        isFullscreen = false;
+    }
+
+    // 监听全屏状态变化
+    document.addEventListener('fullscreenchange', () => {
+        isFullscreen = !!document.fullscreenElement;
+    });
+    document.addEventListener('webkitfullscreenchange', () => {
+        isFullscreen = !!document.webkitFullscreenElement;
+    });
+    document.addEventListener('msfullscreenchange', () => {
+        isFullscreen = !!document.msFullscreenElement;
+    });
+
     function startGame() {
-        startScreen.style.display = 'none';
         resetGameState();
-        spawnTimer = setInterval(spawnItem, 2000);
+        startScreen.style.display = 'none';
+
+        // 延迟进入全屏，避免iOS Safari的问题
+        setTimeout(() => {
+            enterFullscreen();
+        }, 200);
+
+        gameLoop();
+
+        spawnTimer = setInterval(() => {
+            if (!paused && gameRunning) spawnItem();
+        }, 1800);
+
         countdown = setInterval(() => {
-            if (!paused && timeLeft > 0) {
+            if (!paused && gameRunning) {
                 timeLeft--;
                 timerDisplay.innerText = `剩余时间：${timeLeft}秒`;
                 if (timeLeft <= 0) showEndScreen();
             }
         }, 1000);
-        gameLoop();
     }
 
-    startButton.onclick = startGame;
-    leftBtn.onmousedown = () => player.movingLeft = true;
-    leftBtn.onmouseup = () => player.movingLeft = false;
-    rightBtn.onmousedown = () => player.movingRight = true;
-    rightBtn.onmouseup = () => player.movingRight = false;
-    jumpBtn.onclick = () => {
+    startButton.onclick = () => startGame();
+
+    document.addEventListener('keydown', e => {
+        if (e.code === 'Space' && !player.jump) {
+            player.vy = -15;
+            player.jump = true;
+            jumpSound.play();
+        }
+        if (e.code === 'KeyA') player.movingLeft = true;
+        if (e.code === 'KeyD') player.movingRight = true;
+        if (e.code === 'KeyP') {
+            paused = !paused;
+            pauseStatus.style.display = paused ? 'block' : 'none';
+        }
+    });
+
+    document.addEventListener('keyup', e => {
+        if (e.code === 'KeyA') player.movingLeft = false;
+        if (e.code === 'KeyD') player.movingRight = false;
+    });
+
+    leftBtn.addEventListener('touchstart', () => player.movingLeft = true);
+    leftBtn.addEventListener('touchend', () => player.movingLeft = false);
+
+    rightBtn.addEventListener('touchstart', () => player.movingRight = true);
+    rightBtn.addEventListener('touchend', () => player.movingRight = false);
+
+    jumpBtn.addEventListener('touchstart', () => {
         if (!player.jump) {
             player.vy = -15;
             player.jump = true;
             jumpSound.play();
         }
-    };
+    });
 </script>
 </body>
 </html>
