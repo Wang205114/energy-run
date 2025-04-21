@@ -177,7 +177,11 @@
     const jumpBtn = document.getElementById('jumpBtn');
     const jumpSound = document.getElementById('jumpSound');
     const characterImg = new Image();
+    characterImg.onload = () => {
+        drawPlayer(); // 图片加载完成后可以安全绘制人物
+    };
     characterImg.src = 'https://i.imgur.com/0HmSQpo.png';
+
 
     let player = {}, items = [], gameFrame, spawnTimer, countdown;
     let ground, gravity = 0.5, speed = 3;
@@ -217,21 +221,41 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    function resetGameState() {
-        // 玩家大小调整为画布宽度的15%
-        const playerSize = canvas.width * 0.15;
+    function resizeCanvas() {
+        const windowHeight = window.innerHeight;
+        const windowWidth = window.innerWidth;
+
+        // 设置画布高度为窗口高度的60%，留出更多空间给控制按钮
+        canvas.height = Math.min(windowHeight * 0.6, windowWidth * 1.2);
+        canvas.width = windowWidth;
+
+        // 地面位置为画布高度的75%（更靠下）
+        ground = canvas.height * 0.75;
+
+        // 如果游戏正在运行，重置玩家位置
+        if(gameRunning) {
+            resetPlayerPosition();
+        }
+    }
+
+    function resetPlayerPosition() {
+        // 玩家大小调整为画布宽度的12%（更小以适应手机屏幕）
+        const playerSize = canvas.width * 0.05;
         player = {
-            x: 50,
+            x: 30,  // 更靠左
             y: ground - playerSize,
             width: playerSize,
             height: playerSize,
             vy: 0,
             jump: false,
-            speed: canvas.width * 0.01,
+            speed: canvas.width * 0.003,  // 移动速度调慢
             movingLeft: false,
             movingRight: false
         };
+    }
 
+    function resetGameState() {
+        resetPlayerPosition();
         score = 0;
         timeLeft = 60;
         paused = false;
@@ -245,10 +269,10 @@
     function spawnItem() {
         if (Math.random() < 0.6) {
             let q = questions[Math.floor(Math.random() * questions.length)];
-            // 物品大小调整为画布宽度的10%
-            const itemSize = canvas.width * 0.1;
+            // 物品大小调整为画布宽度的8%（更小）
+            const itemSize = canvas.width * 0.05;
             items.push({
-                x: canvas.width + 100,
+                x: canvas.width + 50,  // 生成位置更近
                 y: ground - itemSize,
                 width: itemSize,
                 height: itemSize,
@@ -476,7 +500,7 @@
         }, 1000);
     }
 
-    startButton.onclick = () => startGame();
+    startButton.onclick = () => {startGame();drawPlayer();}
 
     // 键盘控制
     document.addEventListener('keydown', e => {
