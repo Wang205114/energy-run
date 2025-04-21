@@ -207,17 +207,7 @@
         { q: '在宿舍节能应该避免什么行为？', options: ['电脑挂着下载通宵', '统一作息关灯', '使用节能插座'], correct: 0 }
     ];
 
-    function resizeCanvas() {
-        const windowHeight = window.innerHeight;
-        const windowWidth = window.innerWidth;
 
-        // 设置画布高度为窗口高度的70%，确保控制按钮有足够空间
-        canvas.height = Math.min(windowHeight * 0.7, windowWidth * 1.5);
-        canvas.width = windowWidth;
-
-        // 地面位置为画布高度的80%
-        ground = canvas.height * 0.8;
-    }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
@@ -226,11 +216,11 @@
         const windowWidth = window.innerWidth;
 
         // 设置画布高度为窗口高度的60%，留出更多空间给控制按钮
-        canvas.height = Math.min(windowHeight * 0.6, windowWidth * 1.2);
+        canvas.height = Math.min(windowHeight * 0.7, windowWidth * 1.5);
         canvas.width = windowWidth;
 
         // 地面位置为画布高度的75%（更靠下）
-        ground = canvas.height * 0.75;
+        ground = canvas.height * 0.8;
 
         // 如果游戏正在运行，重置玩家位置
         if(gameRunning) {
