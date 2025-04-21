@@ -534,7 +534,7 @@
     jumpBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         if (!player.jump) {
-            player.vy = -canvas.height * 0.08; // 高度为画布高度的3%
+            player.vy = -canvas.height * 0.20; // 高度为画布高度的3%
             player.jump = true;
             jumpSound.play();
         }
