@@ -10,6 +10,7 @@
             font-family: 'Arial', sans-serif;
             background: linear-gradient(to bottom, #e0f2f1, #fff);
             overflow: hidden;
+            touch-action: manipulation;
         }
         canvas {
             display: block;
@@ -17,7 +18,8 @@
             background: #c8e6c9;
             border: 4px solid #388e3c;
             border-radius: 10px;
-            max-width: 100%;
+            width: 100%;
+            height: 70vh;
         }
         #hud {
             position: absolute;
@@ -25,10 +27,13 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 40px;
-            font-size: 1.2em;
+            gap: 20px;
+            font-size: 1em;
             color: #2e7d32;
             z-index: 5;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
         }
         #pauseStatus { display: none; }
         #startScreen, #endScreen {
@@ -36,50 +41,49 @@
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            font-size: 2em;
+            font-size: 1.5em;
             color: #388e3c;
             padding: 20px;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 10;
+            width: 90%;
+            max-width: 400px;
         }
         #startScreen button, #endScreen button {
             padding: 10px 20px;
-            font-size: 1.2em;
+            font-size: 1em;
             background-color: #388e3c;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 15px;
         }
         #controls {
-            position: absolute;
-            bottom: 20px;
+            position: fixed;
+            bottom: 10px;
             width: 100%;
             display: flex;
-            justify-content: center;
-            gap: 60px;
+            justify-content: space-between;
+            padding: 0 20px;
             z-index: 5;
         }
         #controls button {
-            padding: 20px 40px;
-            font-size: 1.4em;
+            padding: 15px 25px;
+            font-size: 1.2em;
             background-color: #66bb6a;
             color: white;
             border: none;
-            border-radius: 12px;
-            min-width: 80px;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-
-        #leftBtn {
-            margin-right: 10px;
-        }
-        #jumpBtn {
-            margin: 0 10px;
-        }
-        #rightBtn {
-            margin-left: -65px;
+        #leftRightContainer {
+            display: flex;
+            gap: 20px;
         }
 
         /* 弹窗样式 */
@@ -88,9 +92,10 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 70%;
+            width: 85%;
+            max-width: 400px;
             padding: 20px;
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             z-index: 20;
@@ -99,30 +104,40 @@
         }
 
         #questionModal button {
-            margin-top: 10px;
+            margin-top: 15px;
             padding: 10px 20px;
-            font-size: 1.2em;
+            font-size: 1em;
             background-color: #388e3c;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            width: 100%;
         }
 
         #questionModal select {
+            width: 100%;
             padding: 10px;
-            font-size: 1.2em;
+            font-size: 1em;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #questionText {
+            margin-bottom: 15px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 <div id="hud">
     <div id="scoreboard">得分：0</div>
-    <div id="timer">剩余时间：60秒</div>
+    <div id="timer">时间：60秒</div>
     <div id="pauseStatus">暂停中</div>
 </div>
-<canvas id="gameCanvas" width="800" height="500"></canvas>
-<audio id="bgm" src="https://cdn.pixabay.com/download/audio/2023/03/27/audio_1dc7e4d0fd.mp3?filename=arcade-112336.mp3" autoplay loop></audio>
+<canvas id="gameCanvas"></canvas>
+<audio id="bgm" src="https://cdn.pixabay.com/download/audio/2023/03/27/audio_1dc7e4d0fd.mp3?filename=arcade-112336.mp3" loop></audio>
 <audio id="jumpSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_a326c93f3f.mp3"></audio>
 
 <div id="startScreen">
@@ -131,9 +146,11 @@
 </div>
 
 <div id="controls">
-    <button id="leftBtn">左</button>
-    <button id="rightBtn">右</button>
-    <button id="jumpBtn">跳跃</button>
+    <div id="leftRightContainer">
+        <button id="leftBtn">←</button>
+        <button id="rightBtn">→</button>
+    </div>
+    <button id="jumpBtn">跳</button>
 </div>
 
 <!-- 自定义弹窗 -->
@@ -163,7 +180,7 @@
     characterImg.src = 'https://i.imgur.com/0HmSQpo.png';
 
     let player = {}, items = [], gameFrame, spawnTimer, countdown;
-    let ground = 450, gravity = 1, speed = 3;
+    let ground, gravity = 0.5, speed = 3;
     let score = 0, timeLeft = 60, paused = false, gameRunning = false;
     let isFullscreen = false;
     let currentModalItem = null;
@@ -187,27 +204,57 @@
     ];
 
     function resizeCanvas() {
-        canvas.width = Math.min(window.innerWidth - 20, 800);
-        canvas.height = 500;
+        const windowHeight = window.innerHeight;
+        const windowWidth = window.innerWidth;
+
+        // 设置画布高度为窗口高度的70%，确保控制按钮有足够空间
+        canvas.height = Math.min(windowHeight * 0.7, windowWidth * 1.5);
+        canvas.width = windowWidth;
+
+        // 地面位置为画布高度的80%
+        ground = canvas.height * 0.8;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
     function resetGameState() {
-        player = { x: 50, y: 400, width: 60, height: 60, vy: 0, jump: false, speed: 3, movingLeft: false, movingRight: false };
-        score = 0; timeLeft = 60; paused = false; items = []; gameRunning = true;
+        // 玩家大小调整为画布宽度的15%
+        const playerSize = canvas.width * 0.15;
+        player = {
+            x: 50,
+            y: ground - playerSize,
+            width: playerSize,
+            height: playerSize,
+            vy: 0,
+            jump: false,
+            speed: canvas.width * 0.01,
+            movingLeft: false,
+            movingRight: false
+        };
+
+        score = 0;
+        timeLeft = 60;
+        paused = false;
+        items = [];
+        gameRunning = true;
         scoreboard.innerText = `得分：${score}`;
-        timerDisplay.innerText = `剩余时间：${timeLeft}秒`;
+        timerDisplay.innerText = `时间：${timeLeft}秒`;
         pauseStatus.style.display = 'none';
     }
 
     function spawnItem() {
         if (Math.random() < 0.6) {
             let q = questions[Math.floor(Math.random() * questions.length)];
+            // 物品大小调整为画布宽度的10%
+            const itemSize = canvas.width * 0.1;
             items.push({
                 x: canvas.width + 100,
-                y: 400, width: 40, height: 40,
-                question: q, answered: false, passed: false
+                y: ground - itemSize,
+                width: itemSize,
+                height: itemSize,
+                question: q,
+                answered: false,
+                passed: false
             });
         }
     }
@@ -339,7 +386,7 @@
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#a5d6a7';
-        ctx.fillRect(0, ground, canvas.width, 50);
+        ctx.fillRect(0, ground, canvas.width, canvas.height - ground);
 
         player.y += player.vy;
         player.vy += gravity;
@@ -400,9 +447,18 @@
         resetGameState();
         startScreen.style.display = 'none';
 
+        // 尝试播放背景音乐
+        const bgm = document.getElementById('bgm');
+        bgm.volume = 0.3;
+        bgm.play().catch(e => console.log("自动播放被阻止:", e));
+
         // 延迟进入全屏，避免iOS Safari的问题
         setTimeout(() => {
-            enterFullscreen();
+            try {
+                enterFullscreen();
+            } catch (e) {
+                console.log("全屏错误:", e);
+            }
         }, 200);
 
         gameLoop();
@@ -414,7 +470,7 @@
         countdown = setInterval(() => {
             if (!paused && gameRunning) {
                 timeLeft--;
-                timerDisplay.innerText = `剩余时间：${timeLeft}秒`;
+                timerDisplay.innerText = `时间：${timeLeft}秒`;
                 if (timeLeft <= 0) showEndScreen();
             }
         }, 1000);
@@ -422,14 +478,15 @@
 
     startButton.onclick = () => startGame();
 
+    // 键盘控制
     document.addEventListener('keydown', e => {
         if (e.code === 'Space' && !player.jump) {
             player.vy = -15;
             player.jump = true;
             jumpSound.play();
         }
-        if (e.code === 'KeyA') player.movingLeft = true;
-        if (e.code === 'KeyD') player.movingRight = true;
+        if (e.code === 'KeyA' || e.code === 'ArrowLeft') player.movingLeft = true;
+        if (e.code === 'KeyD' || e.code === 'ArrowRight') player.movingRight = true;
         if (e.code === 'KeyP') {
             paused = !paused;
             pauseStatus.style.display = paused ? 'block' : 'none';
@@ -437,23 +494,44 @@
     });
 
     document.addEventListener('keyup', e => {
-        if (e.code === 'KeyA') player.movingLeft = false;
-        if (e.code === 'KeyD') player.movingRight = false;
+        if (e.code === 'KeyA' || e.code === 'ArrowLeft') player.movingLeft = false;
+        if (e.code === 'KeyD' || e.code === 'ArrowRight') player.movingRight = false;
     });
 
-    leftBtn.addEventListener('touchstart', () => player.movingLeft = true);
-    leftBtn.addEventListener('touchend', () => player.movingLeft = false);
+    // 触摸控制
+    leftBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        player.movingLeft = true;
+    });
+    leftBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        player.movingLeft = false;
+    });
 
-    rightBtn.addEventListener('touchstart', () => player.movingRight = true);
-    rightBtn.addEventListener('touchend', () => player.movingRight = false);
+    rightBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        player.movingRight = true;
+    });
+    rightBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        player.movingRight = false;
+    });
 
-    jumpBtn.addEventListener('touchstart', () => {
+    jumpBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
         if (!player.jump) {
             player.vy = -15;
             player.jump = true;
             jumpSound.play();
         }
     });
+
+    // 防止触摸时的页面滚动
+    document.addEventListener('touchmove', (e) => {
+        if (gameRunning) {
+            e.preventDefault();
+        }
+    }, { passive: false });
 </script>
 </body>
 </html>
