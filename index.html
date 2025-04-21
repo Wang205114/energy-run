@@ -230,7 +230,7 @@
 
     function resetPlayerPosition() {
         // 玩家大小调整为画布宽度的12%（更小以适应手机屏幕）
-        const playerSize = canvas.width * 0.05;
+        const playerSize = canvas.width * 0.08;
         player = {
             x: 30,  // 更靠左
             y: ground - playerSize,
@@ -260,7 +260,7 @@
         if (Math.random() < 0.6) {
             let q = questions[Math.floor(Math.random() * questions.length)];
             // 物品大小调整为画布宽度的8%（更小）
-            const itemSize = canvas.width * 0.05;
+            const itemSize = canvas.width * 0.08;
             items.push({
                 x: canvas.width + 50,  // 生成位置更近
                 y: ground - itemSize,
@@ -534,7 +534,7 @@
     jumpBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         if (!player.jump) {
-            player.vy = -15;
+            player.vy = -canvas.height * 0.03; // 高度为画布高度的3%
             player.jump = true;
             jumpSound.play();
         }
